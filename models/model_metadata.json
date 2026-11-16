@@ -1,0 +1,189 @@
+{
+  "model_name": "GlycoGuard AI Clinical Classifier",
+  "algorithm": "RandomForestClassifier (Ensemble)",
+  "best_params": {
+    "max_depth": 5,
+    "min_samples_leaf": 2,
+    "min_samples_split": 2,
+    "n_estimators": 100
+  },
+  "cv_roc_auc": 0.836,
+  "test_metrics": {
+    "accuracy": 0.7338,
+    "precision": 0.6,
+    "recall": 0.7222,
+    "specificity": 0.74,
+    "f1_score": 0.6555,
+    "roc_auc": 0.8343,
+    "confusion_matrix": {
+      "true_negatives": 74,
+      "false_positives": 26,
+      "false_negatives": 15,
+      "true_positives": 39
+    }
+  },
+  "benchmarks": [
+    {
+      "model": "Logistic Regression",
+      "cv_accuracy": 0.7768,
+      "cv_precision": 0.6677,
+      "cv_recall": 0.7475,
+      "cv_specificity": 0.7925,
+      "cv_f1": 0.7006,
+      "cv_roc_auc": 0.8494
+    },
+    {
+      "model": "K-Nearest Neighbors",
+      "cv_accuracy": 0.7589,
+      "cv_precision": 0.693,
+      "cv_recall": 0.5749,
+      "cv_specificity": 0.8575,
+      "cv_f1": 0.6234,
+      "cv_roc_auc": 0.8033
+    },
+    {
+      "model": "Decision Tree",
+      "cv_accuracy": 0.6808,
+      "cv_precision": 0.5414,
+      "cv_recall": 0.5564,
+      "cv_specificity": 0.7475,
+      "cv_f1": 0.5483,
+      "cv_roc_auc": 0.6519
+    },
+    {
+      "model": "Random Forest",
+      "cv_accuracy": 0.7605,
+      "cv_precision": 0.6946,
+      "cv_recall": 0.5699,
+      "cv_specificity": 0.8625,
+      "cv_f1": 0.6243,
+      "cv_roc_auc": 0.8141
+    },
+    {
+      "model": "Gradient Boosting",
+      "cv_accuracy": 0.7573,
+      "cv_precision": 0.6716,
+      "cv_recall": 0.6121,
+      "cv_specificity": 0.835,
+      "cv_f1": 0.6377,
+      "cv_roc_auc": 0.8148
+    },
+    {
+      "model": "Support Vector Machine",
+      "cv_accuracy": 0.7394,
+      "cv_precision": 0.6061,
+      "cv_recall": 0.7337,
+      "cv_specificity": 0.7425,
+      "cv_f1": 0.6628,
+      "cv_roc_auc": 0.8333
+    },
+    {
+      "model": "Extra Trees",
+      "cv_accuracy": 0.7442,
+      "cv_precision": 0.6697,
+      "cv_recall": 0.5514,
+      "cv_specificity": 0.8475,
+      "cv_f1": 0.5997,
+      "cv_roc_auc": 0.8202
+    }
+  ],
+  "feature_names": [
+    "Pregnancies",
+    "Glucose",
+    "BloodPressure",
+    "SkinThickness",
+    "Insulin",
+    "BMI",
+    "DiabetesPedigreeFunction",
+    "Age",
+    "Glucose_Insulin_Ratio",
+    "BMI_Category_Normal",
+    "BMI_Category_Obese",
+    "BMI_Category_Overweight",
+    "BMI_Category_Underweight",
+    "Age_Group_Middle_Age",
+    "Age_Group_Senior",
+    "Age_Group_Young"
+  ],
+  "healthy_baseline": {
+    "Pregnancies": 3.3,
+    "Glucose": 109.98,
+    "BloodPressure": 68.18,
+    "SkinThickness": 19.66,
+    "Insulin": 68.79,
+    "BMI": 30.3,
+    "DiabetesPedigreeFunction": 0.43,
+    "Age": 31.19
+  },
+  "diabetic_baseline": {
+    "Pregnancies": 4.87,
+    "Glucose": 141.26,
+    "BloodPressure": 70.82,
+    "SkinThickness": 22.16,
+    "Insulin": 100.34,
+    "BMI": 35.14,
+    "DiabetesPedigreeFunction": 0.55,
+    "Age": 37.07
+  },
+  "ranges": {
+    "Pregnancies": {
+      "min": 0.0,
+      "max": 17.0,
+      "mean": 3.8450520833333335,
+      "median": 3.0,
+      "std": 3.3695780626988694
+    },
+    "Glucose": {
+      "min": 0.0,
+      "max": 199.0,
+      "mean": 120.89453125,
+      "median": 117.0,
+      "std": 31.97261819513622
+    },
+    "BloodPressure": {
+      "min": 0.0,
+      "max": 122.0,
+      "mean": 69.10546875,
+      "median": 72.0,
+      "std": 19.355807170644777
+    },
+    "SkinThickness": {
+      "min": 0.0,
+      "max": 99.0,
+      "mean": 20.536458333333332,
+      "median": 23.0,
+      "std": 15.952217567727637
+    },
+    "Insulin": {
+      "min": 0.0,
+      "max": 846.0,
+      "mean": 79.79947916666667,
+      "median": 30.5,
+      "std": 115.24400235133817
+    },
+    "BMI": {
+      "min": 0.0,
+      "max": 67.1,
+      "mean": 31.992578124999998,
+      "median": 32.0,
+      "std": 7.884160320375446
+    },
+    "DiabetesPedigreeFunction": {
+      "min": 0.078,
+      "max": 2.42,
+      "mean": 0.47187630208333325,
+      "median": 0.3725,
+      "std": 0.3313285950127749
+    },
+    "Age": {
+      "min": 21.0,
+      "max": 81.0,
+      "mean": 33.240885416666664,
+      "median": 29.0,
+      "std": 11.760231540678685
+    }
+  },
+  "dataset_records": 768,
+  "train_records": 614,
+  "test_records": 154
+}

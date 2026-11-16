@@ -1,0 +1,66 @@
+[
+  {
+    "feature": "Glucose",
+    "importance": 0.31622
+  },
+  {
+    "feature": "BMI",
+    "importance": 0.13646
+  },
+  {
+    "feature": "Age",
+    "importance": 0.09414
+  },
+  {
+    "feature": "SkinThickness",
+    "importance": 0.08101
+  },
+  {
+    "feature": "DiabetesPedigreeFunction",
+    "importance": 0.07144
+  },
+  {
+    "feature": "Glucose_Insulin_Ratio",
+    "importance": 0.06545
+  },
+  {
+    "feature": "BMI_Category_Obese",
+    "importance": 0.05315
+  },
+  {
+    "feature": "Insulin",
+    "importance": 0.04473
+  },
+  {
+    "feature": "Pregnancies",
+    "importance": 0.04012
+  },
+  {
+    "feature": "Age_Group_Young",
+    "importance": 0.03153
+  },
+  {
+    "feature": "BloodPressure",
+    "importance": 0.02601
+  },
+  {
+    "feature": "BMI_Category_Normal",
+    "importance": 0.01629
+  },
+  {
+    "feature": "Age_Group_Middle_Age",
+    "importance": 0.01191
+  },
+  {
+    "feature": "BMI_Category_Overweight",
+    "importance": 0.00776
+  },
+  {
+    "feature": "Age_Group_Senior",
+    "importance": 0.00379
+  },
+  {
+    "feature": "BMI_Category_Underweight",
+    "importance": 0.0
+  }
+]

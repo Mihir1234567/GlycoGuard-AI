@@ -1,0 +1,613 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GlycoGuard AI – Clinical Diabetes Risk Intelligence</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Chart.js CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col font-sans antialiased">
+
+  <!-- Header / Navigation -->
+  <header class="bg-white border-b border-slate-200 sticky top-0 z-50 shadow-sm">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5 flex items-center justify-between">
+      <div class="flex items-center space-x-3">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-teal-600 to-emerald-400 flex items-center justify-center text-white shadow-md shadow-teal-500/20">
+          <i class="fa-solid fa-heart-pulse text-xl"></i>
+        </div>
+        <div>
+          <h1 class="text-xl font-bold tracking-tight text-slate-900 flex items-center gap-2">
+            GlycoGuard <span class="text-teal-600">AI</span>
+            <span class="text-xs font-semibold px-2 py-0.5 rounded-full bg-teal-50 text-teal-700 border border-teal-200">v1.0 Production</span>
+          </h1>
+          <p class="text-xs text-slate-500">Clinical Diabetes Risk Prediction & Decision Support System</p>
+        </div>
+      </div>
+
+      <!-- Quick Metrics Header Pill -->
+      <div class="hidden md:flex items-center space-x-4 text-xs">
+        <div class="bg-slate-100 rounded-lg px-3 py-1.5 flex items-center space-x-2 border border-slate-200">
+          <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+          <span class="text-slate-600 font-medium" id="api-status">API Connected</span>
+        </div>
+        <div class="bg-slate-100 rounded-lg px-3 py-1.5 border border-slate-200">
+          <span class="text-slate-500">Model:</span>
+          <span class="font-semibold text-slate-700">RandomForest (Ensemble)</span>
+        </div>
+        <div class="bg-slate-100 rounded-lg px-3 py-1.5 border border-slate-200">
+          <span class="text-slate-500">CV ROC-AUC:</span>
+          <span class="font-semibold text-teal-600" id="header-roc-auc">0.8360</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Navigation Tabs -->
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex space-x-2 border-t border-slate-100 overflow-x-auto">
+      <button onclick="switchTab('tab-assessment')" id="btn-tab-assessment" class="nav-tab active-tab py-2.5 px-4 text-sm font-medium border-b-2 border-teal-600 text-teal-600 flex items-center gap-2">
+        <i class="fa-solid fa-user-doctor"></i> Patient Assessment
+      </button>
+      <button onclick="switchTab('tab-whatif')" id="btn-tab-whatif" class="nav-tab py-2.5 px-4 text-sm font-medium border-b-2 border-transparent text-slate-600 hover:text-slate-900 flex items-center gap-2">
+        <i class="fa-solid fa-sliders"></i> What-If Simulation
+      </button>
+      <button onclick="switchTab('tab-batch')" id="btn-tab-batch" class="nav-tab py-2.5 px-4 text-sm font-medium border-b-2 border-transparent text-slate-600 hover:text-slate-900 flex items-center gap-2">
+        <i class="fa-solid fa-file-csv"></i> Batch Cohort Screening
+      </button>
+      <button onclick="switchTab('tab-analytics')" id="btn-tab-analytics" class="nav-tab py-2.5 px-4 text-sm font-medium border-b-2 border-transparent text-slate-600 hover:text-slate-900 flex items-center gap-2">
+        <i class="fa-solid fa-chart-pie"></i> Model Analytics & XAI
+      </button>
+    </div>
+  </header>
+
+  <!-- Main Content Container -->
+  <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
+
+    <!-- TAB 1: PATIENT ASSESSMENT -->
+    <section id="tab-assessment" class="tab-content block">
+      <!-- Preset Profiles Toolbar -->
+      <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm mb-6 flex flex-wrap items-center justify-between gap-3">
+        <div class="flex items-center gap-2 text-sm font-medium text-slate-700">
+          <i class="fa-solid fa-sparkles text-amber-500"></i> Load Clinical Case Preset:
+        </div>
+        <div class="flex flex-wrap gap-2">
+          <button onclick="loadPreset('healthy')" class="px-3 py-1.5 text-xs font-semibold rounded-lg bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-100 transition">
+            <i class="fa-solid fa-circle-check text-emerald-500 mr-1"></i> Healthy Baseline
+          </button>
+          <button onclick="loadPreset('prediabetic')" class="px-3 py-1.5 text-xs font-semibold rounded-lg bg-amber-50 text-amber-700 border border-amber-200 hover:bg-amber-100 transition">
+            <i class="fa-solid fa-triangle-exclamation text-amber-500 mr-1"></i> Borderline Prediabetic
+          </button>
+          <button onclick="loadPreset('highrisk')" class="px-3 py-1.5 text-xs font-semibold rounded-lg bg-red-50 text-red-700 border border-red-200 hover:bg-red-100 transition">
+            <i class="fa-solid fa-radiation text-red-500 mr-1"></i> High-Risk Obese Case
+          </button>
+          <button onclick="loadPreset('gestational')" class="px-3 py-1.5 text-xs font-semibold rounded-lg bg-purple-50 text-purple-700 border border-purple-200 hover:bg-purple-100 transition">
+            <i class="fa-solid fa-person-pregnant text-purple-500 mr-1"></i> High Gravidity Profile
+          </button>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <!-- Input Form Section (7 cols) -->
+        <div class="lg:col-span-7 bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+          <div class="flex items-center justify-between pb-4 border-b border-slate-100 mb-5">
+            <div>
+              <h2 class="text-lg font-bold text-slate-900">Clinical Measurements Input</h2>
+              <p class="text-xs text-slate-500">Adjust the physiological parameters for real-time model inference</p>
+            </div>
+            <button onclick="resetInputs()" class="text-xs text-slate-500 hover:text-teal-600 transition flex items-center gap-1">
+              <i class="fa-solid fa-rotate-left"></i> Reset Defaults
+            </button>
+          </div>
+
+          <form id="assessment-form" onsubmit="event.preventDefault(); runPrediction();" class="space-y-4">
+            
+            <!-- Grid of 8 clinical variables -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              
+              <!-- Glucose -->
+              <div class="p-3 bg-slate-50/80 rounded-xl border border-slate-200/80">
+                <div class="flex justify-between items-center mb-1">
+                  <label class="text-xs font-semibold text-slate-700 flex items-center gap-1.5">
+                    <i class="fa-solid fa-droplet text-red-500"></i> Glucose (Fasting)
+                  </label>
+                  <span class="text-xs font-bold text-teal-700" id="val-Glucose">120 mg/dL</span>
+                </div>
+                <input type="range" id="range-Glucose" min="50" max="250" value="120" step="1" 
+                  oninput="syncParam('Glucose', this.value)" class="w-full accent-teal-600 h-1.5 bg-slate-200 rounded-lg cursor-pointer">
+                <div class="flex justify-between text-[10px] text-slate-400 mt-0.5">
+                  <span>50 (Normal &lt;100)</span>
+                  <span>250</span>
+                </div>
+              </div>
+
+              <!-- BMI -->
+              <div class="p-3 bg-slate-50/80 rounded-xl border border-slate-200/80">
+                <div class="flex justify-between items-center mb-1">
+                  <label class="text-xs font-semibold text-slate-700 flex items-center gap-1.5">
+                    <i class="fa-solid fa-weight-scale text-indigo-500"></i> Body Mass Index (BMI)
+                  </label>
+                  <span class="text-xs font-bold text-teal-700" id="val-BMI">28.5 kg/m²</span>
+                </div>
+                <input type="range" id="range-BMI" min="15.0" max="65.0" value="28.5" step="0.1" 
+                  oninput="syncParam('BMI', this.value)" class="w-full accent-teal-600 h-1.5 bg-slate-200 rounded-lg cursor-pointer">
+                <div class="flex justify-between text-[10px] text-slate-400 mt-0.5">
+                  <span>15.0 (Optimal: 18.5-24.9)</span>
+                  <span>65.0</span>
+                </div>
+              </div>
+
+              <!-- Blood Pressure -->
+              <div class="p-3 bg-slate-50/80 rounded-xl border border-slate-200/80">
+                <div class="flex justify-between items-center mb-1">
+                  <label class="text-xs font-semibold text-slate-700 flex items-center gap-1.5">
+                    <i class="fa-solid fa-stethoscope text-sky-500"></i> Diastolic Blood Pres.
+                  </label>
+                  <span class="text-xs font-bold text-teal-700" id="val-BloodPressure">70 mm Hg</span>
+                </div>
+                <input type="range" id="range-BloodPressure" min="40" max="140" value="70" step="1" 
+                  oninput="syncParam('BloodPressure', this.value)" class="w-full accent-teal-600 h-1.5 bg-slate-200 rounded-lg cursor-pointer">
+                <div class="flex justify-between text-[10px] text-slate-400 mt-0.5">
+                  <span>40 (Normal &lt;80)</span>
+                  <span>140</span>
+                </div>
+              </div>
+
+              <!-- Insulin -->
+              <div class="p-3 bg-slate-50/80 rounded-xl border border-slate-200/80">
+                <div class="flex justify-between items-center mb-1">
+                  <label class="text-xs font-semibold text-slate-700 flex items-center gap-1.5">
+                    <i class="fa-solid fa-vial text-purple-500"></i> 2-Hour Serum Insulin
+                  </label>
+                  <span class="text-xs font-bold text-teal-700" id="val-Insulin">80 mu U/ml</span>
+                </div>
+                <input type="range" id="range-Insulin" min="0" max="600" value="80" step="5" 
+                  oninput="syncParam('Insulin', this.value)" class="w-full accent-teal-600 h-1.5 bg-slate-200 rounded-lg cursor-pointer">
+                <div class="flex justify-between text-[10px] text-slate-400 mt-0.5">
+                  <span>0 (0 = Imputed)</span>
+                  <span>600</span>
+                </div>
+              </div>
+
+              <!-- Age -->
+              <div class="p-3 bg-slate-50/80 rounded-xl border border-slate-200/80">
+                <div class="flex justify-between items-center mb-1">
+                  <label class="text-xs font-semibold text-slate-700 flex items-center gap-1.5">
+                    <i class="fa-solid fa-cake-candles text-amber-500"></i> Age
+                  </label>
+                  <span class="text-xs font-bold text-teal-700" id="val-Age">35 yrs</span>
+                </div>
+                <input type="range" id="range-Age" min="20" max="90" value="35" step="1" 
+                  oninput="syncParam('Age', this.value)" class="w-full accent-teal-600 h-1.5 bg-slate-200 rounded-lg cursor-pointer">
+                <div class="flex justify-between text-[10px] text-slate-400 mt-0.5">
+                  <span>20 yrs</span>
+                  <span>90 yrs</span>
+                </div>
+              </div>
+
+              <!-- Diabetes Pedigree Function -->
+              <div class="p-3 bg-slate-50/80 rounded-xl border border-slate-200/80">
+                <div class="flex justify-between items-center mb-1">
+                  <label class="text-xs font-semibold text-slate-700 flex items-center gap-1.5">
+                    <i class="fa-solid fa-dna text-emerald-500"></i> Genetic Pedigree (DPF)
+                  </label>
+                  <span class="text-xs font-bold text-teal-700" id="val-DiabetesPedigreeFunction">0.45</span>
+                </div>
+                <input type="range" id="range-DiabetesPedigreeFunction" min="0.05" max="2.50" value="0.45" step="0.01" 
+                  oninput="syncParam('DiabetesPedigreeFunction', this.value)" class="w-full accent-teal-600 h-1.5 bg-slate-200 rounded-lg cursor-pointer">
+                <div class="flex justify-between text-[10px] text-slate-400 mt-0.5">
+                  <span>0.05 (Low Hereditary)</span>
+                  <span>2.50</span>
+                </div>
+              </div>
+
+              <!-- Skin Thickness -->
+              <div class="p-3 bg-slate-50/80 rounded-xl border border-slate-200/80">
+                <div class="flex justify-between items-center mb-1">
+                  <label class="text-xs font-semibold text-slate-700 flex items-center gap-1.5">
+                    <i class="fa-solid fa-ruler-horizontal text-rose-500"></i> Triceps Skin Fold
+                  </label>
+                  <span class="text-xs font-bold text-teal-700" id="val-SkinThickness">20 mm</span>
+                </div>
+                <input type="range" id="range-SkinThickness" min="0" max="80" value="20" step="1" 
+                  oninput="syncParam('SkinThickness', this.value)" class="w-full accent-teal-600 h-1.5 bg-slate-200 rounded-lg cursor-pointer">
+                <div class="flex justify-between text-[10px] text-slate-400 mt-0.5">
+                  <span>0 (0 = Imputed)</span>
+                  <span>80 mm</span>
+                </div>
+              </div>
+
+              <!-- Pregnancies -->
+              <div class="p-3 bg-slate-50/80 rounded-xl border border-slate-200/80">
+                <div class="flex justify-between items-center mb-1">
+                  <label class="text-xs font-semibold text-slate-700 flex items-center gap-1.5">
+                    <i class="fa-solid fa-baby text-blue-500"></i> Pregnancies
+                  </label>
+                  <span class="text-xs font-bold text-teal-700" id="val-Pregnancies">2</span>
+                </div>
+                <input type="range" id="range-Pregnancies" min="0" max="17" value="2" step="1" 
+                  oninput="syncParam('Pregnancies', this.value)" class="w-full accent-teal-600 h-1.5 bg-slate-200 rounded-lg cursor-pointer">
+                <div class="flex justify-between text-[10px] text-slate-400 mt-0.5">
+                  <span>0</span>
+                  <span>17</span>
+                </div>
+              </div>
+
+            </div>
+
+            <div class="pt-2">
+              <button type="submit" id="btn-assess" class="w-full py-3 px-4 bg-teal-600 hover:bg-teal-700 active:bg-teal-800 text-white font-semibold rounded-xl shadow-md shadow-teal-600/20 transition flex items-center justify-center gap-2">
+                <i class="fa-solid fa-calculator"></i> Run Clinical Risk Evaluation
+              </button>
+            </div>
+          </form>
+        </div>
+
+        <!-- Real-Time Results Section (5 cols) -->
+        <div class="lg:col-span-5 space-y-6">
+          
+          <!-- Risk Score Card -->
+          <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm relative overflow-hidden">
+            <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+              <h3 class="text-sm font-bold text-slate-900 uppercase tracking-wider">Calculated Risk Score</h3>
+              <span id="risk-badge" class="px-2.5 py-1 text-xs font-bold rounded-full bg-slate-100 text-slate-700 border border-slate-200">
+                Ready
+              </span>
+            </div>
+
+            <!-- Risk Probability Meter -->
+            <div class="py-6 flex flex-col items-center justify-center">
+              <div class="relative w-40 h-40 flex items-center justify-center">
+                <!-- SVG circular gauge -->
+                <svg class="w-full h-full transform -rotate-90" viewBox="0 0 100 100">
+                  <circle cx="50" cy="50" r="40" stroke="#f1f5f9" stroke-width="8" fill="transparent"></circle>
+                  <circle id="gauge-circle" cx="50" cy="50" r="40" stroke="#10b981" stroke-width="8" stroke-dasharray="251.2" stroke-dashoffset="200" stroke-linecap="round" fill="transparent" class="transition-all duration-700 ease-out"></circle>
+                </svg>
+                <div class="absolute inset-0 flex flex-col items-center justify-center text-center">
+                  <span id="risk-percentage" class="text-3xl font-extrabold text-slate-900">--%</span>
+                  <span class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Risk Index</span>
+                </div>
+              </div>
+
+              <div class="mt-4 text-center">
+                <h4 id="outcome-label" class="text-lg font-bold text-slate-900">Patient Evaluation Ready</h4>
+                <p id="confidence-text" class="text-xs text-slate-500 mt-0.5">Click "Run Clinical Risk Evaluation" to compute probability</p>
+              </div>
+            </div>
+
+            <!-- Risk Tiers Legend -->
+            <div class="grid grid-cols-4 gap-1 pt-3 border-t border-slate-100 text-[10px] text-center font-semibold">
+              <div class="p-1 rounded bg-emerald-50 text-emerald-700">Low (&lt;30%)</div>
+              <div class="p-1 rounded bg-amber-50 text-amber-700">Moderate (30-50%)</div>
+              <div class="p-1 rounded bg-red-50 text-red-700">High (50-75%)</div>
+              <div class="p-1 rounded bg-rose-100 text-rose-900">Critical (&gt;75%)</div>
+            </div>
+          </div>
+
+          <!-- Personalized Recommendations Card -->
+          <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+            <h3 class="text-sm font-bold text-slate-900 mb-3 flex items-center gap-2">
+              <i class="fa-solid fa-notes-medical text-teal-600"></i> Clinical Decision Support
+            </h3>
+            <ul id="recommendations-list" class="space-y-2 text-xs text-slate-600">
+              <li class="flex items-start gap-2">
+                <i class="fa-solid fa-circle-info text-slate-400 mt-0.5"></i>
+                <span>Recommendations will be generated automatically based on patient risk markers.</span>
+              </li>
+            </ul>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Local Explainability (XAI) Feature Deviation Section -->
+      <div class="mt-6 bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+        <div class="flex items-center justify-between mb-4">
+          <div>
+            <h3 class="text-base font-bold text-slate-900 flex items-center gap-2">
+              <i class="fa-solid fa-microscope text-teal-600"></i> Explainable AI (XAI): Patient vs. Healthy Population Baseline
+            </h3>
+            <p class="text-xs text-slate-500">Compares individual patient readings with non-diabetic cohort baseline to isolate driving factors</p>
+          </div>
+        </div>
+
+        <div id="xai-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <!-- Filled dynamically by JavaScript -->
+          <div class="p-4 rounded-xl border border-slate-100 bg-slate-50 text-center text-xs text-slate-400 col-span-full">
+            Perform an assessment to view local feature contribution breakdown.
+          </div>
+        </div>
+      </div>
+
+      <!-- Medical Disclaimer -->
+      <div class="mt-6 p-4 rounded-xl bg-amber-50/70 border border-amber-200/80 text-amber-900 flex items-start gap-3 text-xs leading-relaxed">
+        <i class="fa-solid fa-shield-halved text-amber-600 text-base mt-0.5"></i>
+        <div>
+          <strong class="font-semibold">Educational & Research Disclaimer:</strong> GlycoGuard AI is an automated machine learning decision support prototype built for academic coursework and clinical research demonstration. It does not replace professional medical judgment, laboratory diagnosis, or endocrinologist consultation.
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 2: WHAT-IF SENSITIVITY SIMULATION -->
+    <section id="tab-whatif" class="tab-content hidden">
+      <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm mb-6">
+        <div class="max-w-3xl">
+          <h2 class="text-lg font-bold text-slate-900 flex items-center gap-2">
+            <i class="fa-solid fa-arrow-trend-up text-teal-600"></i> What-If Clinical Sensitivity Engine
+          </h2>
+          <p class="text-xs text-slate-500 mt-1">
+            Simulate dynamic changes in key clinical variables (such as reducing BMI through lifestyle intervention or controlling Glucose with medication) while holding all other patient metrics fixed.
+          </p>
+        </div>
+
+        <!-- Controls for What-If -->
+        <div class="mt-6 grid grid-cols-1 sm:grid-cols-3 gap-4 p-4 bg-slate-50 rounded-xl border border-slate-200">
+          <div>
+            <label class="text-xs font-semibold text-slate-700 block mb-1">Variable to Sweep:</label>
+            <select id="whatif-variable" onchange="runWhatIfSimulation()" class="w-full text-xs font-medium bg-white border border-slate-300 rounded-lg p-2.5 text-slate-800 focus:outline-none focus:ring-2 focus:ring-teal-500">
+              <option value="Glucose" selected>Glucose (mg/dL)</option>
+              <option value="BMI">Body Mass Index (BMI)</option>
+              <option value="Age">Age (years)</option>
+              <option value="BloodPressure">Diastolic Blood Pressure</option>
+              <option value="Insulin">Serum Insulin</option>
+              <option value="DiabetesPedigreeFunction">Diabetes Pedigree Function</option>
+            </select>
+          </div>
+          <div>
+            <label class="text-xs font-semibold text-slate-700 block mb-1">Patient State:</label>
+            <div class="text-xs text-slate-600 py-2.5 px-3 bg-white border border-slate-200 rounded-lg font-medium">
+              Uses current Assessment parameters
+            </div>
+          </div>
+          <div class="flex items-end">
+            <button onclick="runWhatIfSimulation()" class="w-full py-2.5 px-4 bg-teal-600 hover:bg-teal-700 text-white font-semibold text-xs rounded-lg shadow-sm transition flex items-center justify-center gap-1.5">
+              <i class="fa-solid fa-play"></i> Recompute Simulation Curve
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Chart and Inflection Point -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <div class="lg:col-span-8 bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+          <h3 class="text-sm font-bold text-slate-900 mb-2">Simulated Risk Response Curve</h3>
+          <div class="h-80 w-full">
+            <canvas id="whatif-chart"></canvas>
+          </div>
+        </div>
+
+        <div class="lg:col-span-4 space-y-4">
+          <!-- Inflection Point Card -->
+          <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+            <h3 class="text-sm font-bold text-slate-900 mb-2 flex items-center gap-2">
+              <i class="fa-solid fa-crosshairs text-rose-500"></i> Clinical Transition Threshold
+            </h3>
+            <div id="inflection-container" class="text-xs text-slate-600 space-y-2">
+              <p>Analyzing threshold...</p>
+            </div>
+          </div>
+
+          <!-- Simulation Summary -->
+          <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+            <h3 class="text-sm font-bold text-slate-900 mb-2 flex items-center gap-2">
+              <i class="fa-solid fa-lightbulb text-amber-500"></i> Clinical Takeaway
+            </h3>
+            <p id="whatif-summary" class="text-xs text-slate-600 leading-relaxed">
+              Evaluating curve...
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 3: BATCH COHORT SCREENING -->
+    <section id="tab-batch" class="tab-content hidden">
+      <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm mb-6">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <h2 class="text-lg font-bold text-slate-900">Batch Patient Cohort Screening</h2>
+            <p class="text-xs text-slate-500">Upload a CSV containing patient records to screen an entire clinical cohort at scale</p>
+          </div>
+          <button onclick="downloadSampleCSV()" class="px-3.5 py-2 text-xs font-semibold rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 transition flex items-center gap-1.5 self-start">
+            <i class="fa-solid fa-download"></i> Download Sample CSV
+          </button>
+        </div>
+
+        <!-- Upload Dropzone -->
+        <div class="mt-6 border-2 border-dashed border-slate-300 hover:border-teal-500 rounded-xl p-8 text-center bg-slate-50/50 transition cursor-pointer" onclick="document.getElementById('csv-upload-input').click()">
+          <input type="file" id="csv-upload-input" accept=".csv" class="hidden" onchange="handleCSVUpload(this)">
+          <div class="w-12 h-12 rounded-full bg-teal-50 text-teal-600 flex items-center justify-center mx-auto mb-3">
+            <i class="fa-solid fa-cloud-arrow-up text-xl"></i>
+          </div>
+          <p class="text-sm font-semibold text-slate-800">Click to select or drag and drop a patient CSV file</p>
+          <p class="text-xs text-slate-400 mt-1">Requires standard clinical feature headers (Glucose, BMI, BloodPressure, etc.)</p>
+        </div>
+      </div>
+
+      <!-- Batch Results Section (Hidden until uploaded) -->
+      <div id="batch-results-section" class="hidden space-y-6">
+        <!-- Summary Stats Cards -->
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm text-center">
+            <span class="text-xs text-slate-500 font-medium">Total Screened</span>
+            <p id="batch-total" class="text-2xl font-bold text-slate-900 mt-1">0</p>
+          </div>
+          <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm text-center">
+            <span class="text-xs text-red-600 font-medium">Diabetic Flagged</span>
+            <p id="batch-diabetic" class="text-2xl font-bold text-red-600 mt-1">0</p>
+          </div>
+          <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm text-center">
+            <span class="text-xs text-emerald-600 font-medium">Non-Diabetic / Low Risk</span>
+            <p id="batch-nondiabetic" class="text-2xl font-bold text-emerald-600 mt-1">0</p>
+          </div>
+          <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm text-center">
+            <span class="text-xs text-teal-600 font-medium">Cohort Mean Risk</span>
+            <p id="batch-avg-risk" class="text-2xl font-bold text-teal-600 mt-1">0%</p>
+          </div>
+        </div>
+
+        <!-- Table of Results -->
+        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+          <div class="p-4 border-b border-slate-100 flex items-center justify-between">
+            <h3 class="text-sm font-bold text-slate-900">Patient Screening Manifest</h3>
+            <button onclick="exportBatchResults()" class="text-xs font-semibold text-teal-600 hover:text-teal-700 flex items-center gap-1">
+              <i class="fa-solid fa-file-export"></i> Export Scored CSV
+            </button>
+          </div>
+          <div class="overflow-x-auto max-h-96">
+            <table class="w-full text-left text-xs text-slate-700">
+              <thead class="bg-slate-50 text-slate-500 sticky top-0 border-b border-slate-200 font-semibold">
+                <tr>
+                  <th class="p-3">#</th>
+                  <th class="p-3">Glucose</th>
+                  <th class="p-3">BMI</th>
+                  <th class="p-3">Blood Pres.</th>
+                  <th class="p-3">Age</th>
+                  <th class="p-3">Risk %</th>
+                  <th class="p-3">Classification</th>
+                  <th class="p-3">Risk Tier</th>
+                </tr>
+              </thead>
+              <tbody id="batch-table-body" class="divide-y divide-slate-100">
+                <!-- Rows injected dynamically -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 4: MODEL ANALYTICS & SCIENCE XAI -->
+    <section id="tab-analytics" class="tab-content hidden space-y-6">
+      
+      <!-- Top Overview Metrics -->
+      <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+        <div class="bg-white p-3.5 rounded-xl border border-slate-200 shadow-sm text-center">
+          <span class="text-[11px] text-slate-500 uppercase font-bold">Algorithm</span>
+          <p class="text-sm font-bold text-slate-900 mt-0.5">Random Forest</p>
+          <span class="text-[10px] text-teal-600">Ensemble / Tuned</span>
+        </div>
+        <div class="bg-white p-3.5 rounded-xl border border-slate-200 shadow-sm text-center">
+          <span class="text-[11px] text-slate-500 uppercase font-bold">CV ROC-AUC</span>
+          <p id="metric-cv-auc" class="text-base font-bold text-teal-600 mt-0.5">0.8360</p>
+          <span class="text-[10px] text-slate-400">5-Fold Stratified</span>
+        </div>
+        <div class="bg-white p-3.5 rounded-xl border border-slate-200 shadow-sm text-center">
+          <span class="text-[11px] text-slate-500 uppercase font-bold">Test Recall (Sens.)</span>
+          <p id="metric-recall" class="text-base font-bold text-emerald-600 mt-0.5">0.7222</p>
+          <span class="text-[10px] text-slate-400">High Sensitivity</span>
+        </div>
+        <div class="bg-white p-3.5 rounded-xl border border-slate-200 shadow-sm text-center">
+          <span class="text-[11px] text-slate-500 uppercase font-bold">Test Specificity</span>
+          <p id="metric-spec" class="text-base font-bold text-indigo-600 mt-0.5">0.7400</p>
+          <span class="text-[10px] text-slate-400">True Negative Rate</span>
+        </div>
+        <div class="bg-white p-3.5 rounded-xl border border-slate-200 shadow-sm text-center">
+          <span class="text-[11px] text-slate-500 uppercase font-bold">Test F1-Score</span>
+          <p id="metric-f1" class="text-base font-bold text-purple-600 mt-0.5">0.6555</p>
+          <span class="text-[10px] text-slate-400">Harmonic Balance</span>
+        </div>
+        <div class="bg-white p-3.5 rounded-xl border border-slate-200 shadow-sm text-center">
+          <span class="text-[11px] text-slate-500 uppercase font-bold">Imputation</span>
+          <p class="text-sm font-bold text-slate-900 mt-0.5">KNN Imputer</p>
+          <span class="text-[10px] text-slate-400">k=5 Physiological</span>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <!-- Feature Importances Chart (7 cols) -->
+        <div class="lg:col-span-7 bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+          <h3 class="text-sm font-bold text-slate-900 mb-1">Global Feature Importances</h3>
+          <p class="text-xs text-slate-500 mb-4">Gini importance weights derived from the trained ensemble pipeline</p>
+          <div class="h-80 w-full">
+            <canvas id="importance-chart"></canvas>
+          </div>
+        </div>
+
+        <!-- Confusion Matrix & Verification (5 cols) -->
+        <div class="lg:col-span-5 bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between">
+          <div>
+            <h3 class="text-sm font-bold text-slate-900 mb-1">Test Set Confusion Matrix</h3>
+            <p class="text-xs text-slate-500 mb-4">Evaluation on 154 completely unseen hold-out clinical samples</p>
+
+            <div class="grid grid-cols-2 gap-3 text-center my-6">
+              <div class="p-4 rounded-xl bg-emerald-50 border border-emerald-200">
+                <span class="text-xs text-emerald-700 font-semibold">True Negatives</span>
+                <p id="cm-tn" class="text-2xl font-bold text-emerald-800 mt-1">74</p>
+                <span class="text-[10px] text-emerald-600">Correctly identified Non-Diabetic</span>
+              </div>
+              <div class="p-4 rounded-xl bg-rose-50 border border-rose-200">
+                <span class="text-xs text-rose-700 font-semibold">False Positives (Type I)</span>
+                <p id="cm-fp" class="text-2xl font-bold text-rose-800 mt-1">26</p>
+                <span class="text-[10px] text-rose-600">Healthy flagged for follow-up</span>
+              </div>
+              <div class="p-4 rounded-xl bg-amber-50 border border-amber-200">
+                <span class="text-xs text-amber-700 font-semibold">False Negatives (Type II)</span>
+                <p id="cm-fn" class="text-2xl font-bold text-amber-800 mt-1">15</p>
+                <span class="text-[10px] text-amber-600">Missed diabetic cases</span>
+              </div>
+              <div class="p-4 rounded-xl bg-teal-50 border border-teal-200">
+                <span class="text-xs text-teal-700 font-semibold">True Positives</span>
+                <p id="cm-tp" class="text-2xl font-bold text-teal-800 mt-1">39</p>
+                <span class="text-[10px] text-teal-600">Correctly identified Diabetic</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="p-3 bg-slate-50 rounded-xl border border-slate-200 text-[11px] text-slate-600">
+            <strong>Clinical Safety Insight:</strong> In medical screening, prioritizing high sensitivity (minimizing False Negatives) is paramount to avoid missing at-risk patients who require early intervention.
+          </div>
+        </div>
+      </div>
+
+      <!-- Benchmark Model Comparison Table -->
+      <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+        <div class="p-4 border-b border-slate-100">
+          <h3 class="text-sm font-bold text-slate-900">Cross-Validation Benchmark Comparison (7 Algorithms)</h3>
+          <p class="text-xs text-slate-500">Evaluated under identical Stratified 5-Fold splits inside the leakage-free pipeline</p>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-xs text-slate-700">
+            <thead class="bg-slate-50 text-slate-500 border-b border-slate-200 font-semibold">
+              <tr>
+                <th class="p-3">Model</th>
+                <th class="p-3">CV ROC-AUC</th>
+                <th class="p-3">Sensitivity (Recall)</th>
+                <th class="p-3">Specificity</th>
+                <th class="p-3">F1-Score</th>
+                <th class="p-3">Accuracy</th>
+              </tr>
+            </thead>
+            <tbody id="benchmark-table-body" class="divide-y divide-slate-100">
+              <!-- Dynamically populated -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </section>
+
+  </main>
+
+  <!-- Footer -->
+  <footer class="bg-white border-t border-slate-200 py-4 mt-auto">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between text-xs text-slate-500 gap-2">
+      <div>
+        GlycoGuard AI &copy; 2026 – Advanced Clinical Machine Learning Architecture
+      </div>
+      <div class="flex items-center space-x-4">
+        <span>FastAPI Backend</span>
+        <span>&bull;</span>
+        <span>Scikit-Learn Pipeline</span>
+        <span>&bull;</span>
+        <span>Explainable AI (XAI)</span>
+      </div>
+    </div>
+  </footer>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>
