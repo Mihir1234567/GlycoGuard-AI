@@ -1,0 +1,26 @@
+services:
+  # Option 1: FastAPI Web Application & API (Default UI)
+  - type: web
+    name: glycoguard-ai-app
+    env: python
+    region: oregon
+    plan: free
+    buildCommand: pip install -r requirements.txt && python -m src.train
+    startCommand: python run.py --server
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.9
+      - key: HOST
+        value: 0.0.0.0
+
+  # Option 2: Streamlit Analytical Dashboard (Optional separate service)
+  # - type: web
+  #   name: glycoguard-streamlit
+  #   env: python
+  #   region: oregon
+  #   plan: free
+  #   buildCommand: pip install -r requirements.txt && python -m src.train
+  #   startCommand: streamlit run streamlit_app.py --server.port $PORT --server.address 0.0.0.0
+  #   envVars:
+  #     - key: PYTHON_VERSION
+  #       value: 3.11.9

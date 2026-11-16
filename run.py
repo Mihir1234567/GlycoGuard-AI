@@ -28,17 +28,20 @@ def main():
         action="store_true",
         help="Execute the pytest automated test suite"
     )
+    env_port = int(os.environ.get("PORT", 8000))
+    env_host = os.environ.get("HOST", "0.0.0.0")
+
     parser.add_argument(
         "--host",
         type=str,
-        default="127.0.0.1",
-        help="Host address (default: 127.0.0.1)"
+        default=env_host,
+        help=f"Host address (default: {env_host})"
     )
     parser.add_argument(
         "--port",
         type=int,
-        default=8000,
-        help="Port number (default: 8000)"
+        default=env_port,
+        help=f"Port number (default: {env_port})"
     )
 
     args, unknown = parser.parse_known_args()
